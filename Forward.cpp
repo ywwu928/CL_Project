@@ -153,6 +153,29 @@ void conv (
     add_bias(output_reordered, bias, input_row, input_col, output_channel, output);
 }
 
+void fc (
+    MyDataType* input,
+    MyDataType* filter,
+    MyDataType* bias,
+    int input_row,
+    int input_col,
+    int input_channel,
+    int filter_size,
+    int output_channel,
+    MyDataType* output
+) {
+    // create filter matrix
+    MyDataType filter_matrix [(input_channel * filter_size * filter_size) * output_channel];
+    reorder_filter(filter, filter_size, filter_size, input_channel, output_channel, filter_matrix);
+
+    // matrix multiplication
+    MyDataType output_matrix [output_channel];
+    mat_mul(input, filter_matrix, 1, (input_row * input_col * input_channel), output_channel, output_matrix);
+
+    // add bias
+    add_bias(output_matrix, bias, 1, 1, output_channel, output);
+}
+
 void relu (
     MyDataType* input,
     int input_row,
