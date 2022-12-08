@@ -1,3 +1,6 @@
+#include<iostream>
+using namespace std;
+
 class MyDataTyoe
 {
 private:
@@ -9,10 +12,10 @@ public:
     MyDataTyoe() : s(0), e(0), m(0) {}
 
     // copy constructor
-    MyDataTyoe(const MyDataTyoe& copy) {
-        s = copy.s;
-        e = copy.e;
-        m = copy.m;
+    MyDataTyoe(const MyDataTyoe& object) {
+        s = object.s;
+        e = object.e;
+        m = object.m;
     }
 
     // contructor
@@ -20,4 +23,20 @@ public:
         // TODO
         // can convert fp32 to MyDataTyoe here
     }
+
+    /* operand overload */
+    MyDataTyoe operator + (const MyDataTyoe& object) {
+        // TODO
+        MyDataTyoe result;
+        return result;
+    }
+
+    void print() {
+        cout << "sign: " << s << ", exponent: " << e << ", mantissa: " << m << endl;
+    }
 };
+
+int main()
+{
+    return 0;
+}
