@@ -31,12 +31,13 @@ public:
         return result;
     }
 
+    MyDataTyoe operator * (const MyDataTyoe& object) {
+        // TODO
+        MyDataTyoe result;
+        return result;
+    }
+
     void print() {
         cout << "sign: " << s << ", exponent: " << e << ", mantissa: " << m << endl;
     }
 };
-
-int main()
-{
-    return 0;
-}
