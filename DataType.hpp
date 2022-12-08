@@ -1,7 +1,7 @@
 #include<iostream>
 using namespace std;
 
-class MyDataTyoe
+class MyDataType
 {
 private:
     unsigned int s : 1; // sign
@@ -9,31 +9,43 @@ private:
     unsigned int m : 23; // mantissa
 public:
     // default constructor
-    MyDataTyoe() : s(0), e(0), m(0) {}
+    MyDataType () : s(0), e(0), m(0) {}
 
     // copy constructor
-    MyDataTyoe(const MyDataTyoe& object) {
+    MyDataType (MyDataType& object) {
         s = object.s;
         e = object.e;
         m = object.m;
     }
 
     // contructor
-    MyDataTyoe(float fp32) {
+    MyDataType (float fp32) {
         // TODO
-        // can convert fp32 to MyDataTyoe here
+        // can convert fp32 to MyDataType here
     }
 
     /* operand overload */
-    MyDataTyoe operator + (const MyDataTyoe& object) {
+    MyDataType operator + (const MyDataType& object) {
         // TODO
-        MyDataTyoe result;
+        MyDataType result;
         return result;
     }
 
-    MyDataTyoe operator * (const MyDataTyoe& object) {
+    MyDataType operator * (const MyDataType& object) {
         // TODO
-        MyDataTyoe result;
+        MyDataType result;
+        return result;
+    }
+
+    bool operator > (const MyDataType& object) {
+        // TODO
+        bool result;
+        return result;
+    }
+
+    bool operator < (const MyDataType& object) {
+        // TODO
+        bool result;
         return result;
     }
 
