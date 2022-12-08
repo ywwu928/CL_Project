@@ -24,6 +24,9 @@ public:
         // can convert fp32 to MyDataType here
     }
 
+    // destructor
+    ~MyDataType () {}
+
     /* operand overload */
     MyDataType operator + (const MyDataType& object) {
         // TODO
