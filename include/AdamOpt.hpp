@@ -1,6 +1,7 @@
 // Adam reference: https://arxiv.org/pdf/1412.6980.pdf
 // maybe: https://arxiv.org/pdf/2004.14180.pdf
 
+template <class T>
 class AdamOpt 
 {
   public:
@@ -22,10 +23,7 @@ class AdamOpt
           beta1_inv(1-b1),
           beta2_inv(1-b2) {}
 
-    ~AdamOpt();
-
-    template <class T>
-    T update(T grad);
+    T update(T current, T grad);
     
   private:
     double m;   // biased 1st moment estimate
