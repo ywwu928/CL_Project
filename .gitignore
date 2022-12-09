@@ -1,2 +1,9 @@
+# for binary files
+*
+!*.*
+!*/
+!Makefile
+
 # compiled object files
 *.o
+build
