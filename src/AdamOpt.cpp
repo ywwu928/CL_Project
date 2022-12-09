@@ -6,6 +6,9 @@
 #include <iostream>
 #include <exception>
 
+// for testing
+#include <random>
+
 template <class T> 
 void AdamOpt<T>::update(std::vector<T> &current, const std::vector<T> grad) {
 
@@ -30,15 +33,43 @@ void AdamOpt<T>::update(std::vector<T> &current, const std::vector<T> grad) {
     for (auto & elem : current) elem = elem - T(update);
 }
 
-int main() {
+// std::random_device rd;
+// std::mt19937 gen(rd());
+// std::uniform_real_distribution<> dis(-10.0, 10.0);
 
-    AdamOpt<double> adam;
-    std::vector<double> weight(2, 1.0);
-    std::vector<double> gradient(2, 1.0);
-    adam.update(weight, gradient);
-    adam.update(weight, gradient);
-    adam.update(weight, gradient);
-    for (auto & elem : weight) std::cout << elem << std::endl;
+// double get_gradient(double x) {
+//     return 2 * x + 0.1 * dis(gen);
+// }
 
-    return 0;
-};
+// int main() {
+
+//     const int iterations = 200;
+//     const int epochs = 10;
+//     const int n_weights = 4;
+
+
+//     AdamOpt<double> adam(0.1);
+//     std::vector<double> weight(n_weights);
+//     std::vector<double> gradient(n_weights);
+
+//     int x = epochs;
+//     while (x --> 0) {
+//         double initial = dis(gen);
+//         for (size_t i = 0; i < weight.size(); i++) weight[i] = initial;
+
+//         int y = iterations;
+//         while (y --> 0) {
+//             for (size_t i = 0; i < weight.size(); i++) gradient[i] = get_gradient(weight[i]);
+//             adam.update(weight, gradient);
+//             // for (auto & elem : weight) std::cout << elem << " ";
+//             // std::cout << std::endl;
+//             double avg_weight = 0;
+//             for (auto e : weight) avg_weight += e;
+//             for (auto & e : weight) e = avg_weight / n_weights;
+//         }
+//         for (auto & elem : weight) std::cout << elem << " ";
+//         std::cout << std::endl;
+//     }
+
+//     return 0;
+// };
