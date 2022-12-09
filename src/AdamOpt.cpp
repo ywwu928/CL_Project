@@ -1,7 +1,7 @@
 // Adam reference: https://arxiv.org/pdf/1412.6980.pdf
 // maybe: https://arxiv.org/pdf/2004.14180.pdf
 
-#include "include/AdamOpt.hpp"
+#include "AdamOpt.hpp"
 #include <cmath>
 #include <iostream>
 
@@ -17,11 +17,11 @@ T AdamOpt<T>::update(T current, T grad) {
     return current - T(alpha1 * m / (sqrt(v) + this->epsilon));
 }
 
-// int main() {
+int main() {
 
-//     AdamOpt<double> adam;
-//     double u = adam.update(1.0, 1.0);
-//     std::cout << u << std::endl;
+    AdamOpt<double> adam;
+    double u = adam.update(1.0, 1.0);
+    std::cout << u << std::endl;
 
-//     return 0;
-// };
+    return 0;
+};

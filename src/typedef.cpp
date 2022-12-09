@@ -1,4 +1,4 @@
-#include "include/typedef.hpp"
+#include "typedef.hpp"
 #include <iostream>
 
 double pow2(int exp){
