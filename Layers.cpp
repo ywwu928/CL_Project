@@ -1,5 +1,7 @@
 #include "include/Layers.hpp"
 
+/* Forward functions */
+
 // padding = 1
 void zero_pad (
     MyDataType* input,
@@ -153,7 +155,7 @@ void conv (
     add_bias(output_reordered, bias, input_row, input_col, output_channel, output);
 }
 
-void fc (
+void fc_forward (
     MyDataType* input,
     MyDataType* filter,
     MyDataType* bias,
@@ -198,14 +200,23 @@ MyDataType max_4 (MyDataType a, MyDataType b, MyDataType c, MyDataType d) {
     return result1 > result2 ? result1 : result2;
 }
 
+int max_4_index (MyDataType a, MyDataType b, MyDataType c, MyDataType d) {
+    MyDataType result1 = a > b ? a : b;
+    int index1 = a > b ? 1 : 2;
+    MyDataType result2 = c > d ? c : d;
+    int index2 = c > d ? 3 : 4;
+    return result1 > result2 ? index1 : index2;
+}
+
 // kernel size = 2
 // stride = 2
-void max_pool (
+void max_pool_forward (
     MyDataType* input,
     int input_row,
     int input_col,
     int channel_size,
-    MyDataType* output
+    MyDataType* output,
+    int* max_map
 ) {
 
     int output_row = input_row / 2;
@@ -219,8 +230,122 @@ void max_pool (
                 int third = i * input_row * input_col + (j * 2 + 1) * input_row + k * 2;
                 int fourth = i * input_row * input_col + (j * 2 + 1) * input_row + k * 2 + 1;
                 output[i * output_row * output_col + j * output_row + k] = max_4(input[first], input[second], input[third], input[fourth]);
+                
+                int index = max_4_index(input[first], input[second], input[third], input[fourth]);
+                switch(index) {
+                    case 1:
+                        max_map[first] = 1;
+                        max_map[second] = 0;
+                        max_map[third] = 0;
+                        max_map[fourth] = 0;
+                        break;
+                    case 2:
+                        max_map[first] = 0;
+                        max_map[second] = 1;
+                        max_map[third] = 0;
+                        max_map[fourth] = 0;
+                        break;
+                    case 3:
+                        max_map[first] = 0;
+                        max_map[second] = 0;
+                        max_map[third] = 1;
+                        max_map[fourth] = 0;
+                        break;
+                    case 4:
+                        max_map[first] = 0;
+                        max_map[second] = 0;
+                        max_map[third] = 0;
+                        max_map[fourth] = 1;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
+    }
+}
+
+/* Backward functions */
+
+void fc_backward (
+    MyDataType* expected_curr,
+    MyDataType* output_curr,
+    MyDataType* weight_curr,
+    int neuron_num_curr,
+    MyDataType* delta_output_curr,
+    MyDataType* delta_bias_curr,
+    MyDataType* output_prev,
+    int neuron_num_prev,
+    MyDataType* delta_weight_prev,
+    MyDataType* delta_output_prev
+) {
+    for (int i = 0; i < neuron_num_curr; i++) {
+        delta_output_curr[i] = expected_curr[i] - output_curr[i];
+
+        for (int j = 0; j < neuron_num_prev; j++) {
+            delta_weight_prev[j * neuron_num_curr + i] = delta_output_curr[i] * output_prev[j];
+            delta_output_prev[j] = weight_curr[i] * delta_output_curr[i];
+        }
+
+        delta_bias_curr[i] = delta_output_curr[i];
+    }
+}
+
+// kernel size = 2
+// stride = 2
+void max_pool_backward (
+    int* max_map,
+    MyDataType* delta_output,
+    int neuron_num
+    // int input_row,
+    // int input_col,
+    // int channel_size
+) {
+    for (int i = 0; i < neuron_num; i++) {
+        if (max_map[i] == 0) {
+            delta_output[i] = 0;
+        }
+    }
+    // for (int i = 0; i < channel_size; i++) {
+    //     for(int j = 0; j < input_row; j++){
+    //         for(int k = 0; k < input_col; k++){
+    //             if (max_map[i * input_row * input_col + j * input_row + k] == 0) {
+    //                 delta_output[i * input_row * input_col + j * input_row + k] = 0
+    //             }
+    //         }
+    //     }
+    // }
+}
+
+void relu_backward (
+    MyDataType* input,
+    MyDataType* delta_output,
+    int neuron_num
+) {
+    for (int i = 0; i < neuron_num; i++) {
+        if (input[i] < 0) {
+            delta_output[i] = 0;
+        }
+    }
+}
+
+void conv_backward (
+    MyDataType* weight_curr,
+    MyDataType* delta_output_curr,
+    int neuron_num_curr,
+    MyDataType* delta_bias_curr,
+    MyDataType* output_prev,
+    int neuron_num_prev,
+    MyDataType* delta_weight_prev,
+    MyDataType* delta_output_prev
+) {
+    for (int i = 0; i < neuron_num_curr; i++) {
+        for (int j = 0; j < neuron_num_prev; j++) {
+            delta_weight_prev[j * neuron_num_curr + i] = delta_output_curr[i] * output_prev[j];
+            delta_output_prev[j] = weight_curr[i] * delta_output_curr[i];
+        }
+
+        delta_bias_curr[i] = delta_output_curr[i];
     }
 }
 

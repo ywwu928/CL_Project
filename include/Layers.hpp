@@ -67,7 +67,7 @@ void conv (
     MyDataType* output
 );
 
-void fc (
+void fc_forward (
     MyDataType* input,
     MyDataType* filter,
     MyDataType* bias,
@@ -89,10 +89,52 @@ void relu (
 
 MyDataType max_4 (MyDataType a, MyDataType b, MyDataType c, MyDataType d);
 
-void max_pool (
+int max_4_index (MyDataType a, MyDataType b, MyDataType c, MyDataType d);
+
+void max_pool_forward (
     MyDataType* input,
     int input_row,
     int input_col,
     int channel_size,
-    MyDataType* output
+    MyDataType* output,
+    int* max_map
+);
+
+void fc_backward (
+    MyDataType* expected_curr,
+    MyDataType* output_curr,
+    MyDataType* weight_curr,
+    int neuron_num_curr,
+    MyDataType* delta_output_curr,
+    MyDataType* delta_bias_curr,
+    MyDataType* output_prev,
+    int neuron_num_prev,
+    MyDataType* delta_weight_prev,
+    MyDataType* delta_output_prev
+);
+
+void max_pool_backward (
+    MyDataType* max_map,
+    MyDataType* delta_output,
+    int neuron_num
+    // int input_row,
+    // int input_col,
+    // int channel_size
+);
+
+void relu_backward (
+    MyDataType* input,
+    MyDataType* delta_output,
+    int neuron_num
+);
+
+void conv_backward (
+    MyDataType* weight_curr,
+    MyDataType* delta_output_curr,
+    int neuron_num_curr,
+    MyDataType* delta_bias_curr,
+    MyDataType* output_prev,
+    int neuron_num_prev,
+    MyDataType* delta_weight_prev,
+    MyDataType* delta_output_prev
 );

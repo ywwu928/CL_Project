@@ -34,6 +34,12 @@ public:
         return result;
     }
 
+    MyDataType operator - (const MyDataType& object) {
+        // TODO
+        MyDataType result;
+        return result;
+    }
+
     MyDataType operator * (const MyDataType& object) {
         // TODO
         MyDataType result;
