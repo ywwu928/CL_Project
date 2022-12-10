@@ -22,7 +22,7 @@ def main():
     parser.add_argument('--mantissa', '-m', dest='mantissa', type=int)
     parser.add_argument('--epochs', dest='epochs', type=int)
     parser.add_argument('--lr', dest='lr', type=float)
-    parser.add_argument('--cuda', dest='cuda', action='store_true') 
+    parser.add_argument('--cuda', dest='enable_cuda', action='store_true') 
     args = {key:val for key,val in vars(parser.parse_args()).items() if val is not None}
 
     NetRunner(args).run()

@@ -58,7 +58,7 @@ class NetRunner():
             "batch_size": 32,
             "epochs": cmd_args.get('epochs', 30),   # default epochs=30
             "lr": cmd_args.get('lr', 0.1),   # default lr=0.1
-            "enable_cuda" : cmd_args.get('enable_cuda', False),
+            "enable_cuda" : cmd_args.get('enable_cuda', True),
             "L1norm" : False,
             "simpleNet" : True,
             "activation" : "relu", #relu, tanh, sigmoid
