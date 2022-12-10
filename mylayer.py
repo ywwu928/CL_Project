@@ -7,8 +7,7 @@ import converter
 class LinearFunction(Function):
 
     @staticmethod
-    def forward(ctx, input, weight, bias=None):
-        mf  = converter.MyFloat(5, 10)
+    def forward(ctx, mf, input, weight, bias=None):
         input = mf.truncate_floats(input)
         weight = mf.truncate_floats(weight)
         if bias is not None:
@@ -52,24 +51,26 @@ class LinearFunction(Function):
 
 
 class SLinear(nn.Module):
-    def __init__(self, input_features, output_features, bias=True):
+    def __init__(self, mf, input_features, output_features, bias=True):
         super(SLinear, self).__init__()
         self.input_features = input_features
         self.output_features = output_features
         self.weight = torch.randn(output_features, input_features)
+        self.mf = mf
         if bias:
             self.bias = torch.randn(output_features)
         else:
             self.register_parameter('bias', None)
 
     def forward(self, input):
-        return LinearFunction.apply(input, self.weight, self.bias)
+        return LinearFunction.apply(self.mf, input, self.weight, self.bias)
 
 
 if __name__ == '__main__':
     # Test
+    mf = converter.MyFloat(5, 10)
     input = torch.randn(2, 3)
-    linear = SLinear(3, 4)
+    linear = SLinear(mf, 3, 4)
     output = linear(input)
     print(output)
     
