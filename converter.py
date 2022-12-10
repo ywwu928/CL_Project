@@ -31,11 +31,13 @@ class MyFloat():
         return struct.unpack('d', struct.pack('Q', uint64))[0]
 
     def truncate_tensor(self, t : torch.Tensor) -> None:
+        self.__truncate_tensor(t.detach())
+        t.requires_grad_()
+        
+    def __truncate_tensor(self, t : torch.Tensor) -> None:
         man, exp = torch.frexp(t)
         man.ldexp_(self.exp_bits_tensor)
         man.trunc_()
         man.ldexp_(self.exp_bits_tensor_neg)
         exp.clamp_(min=self.exp_min_raw, max=self.exp_max_raw)
         t.copy_(torch.ldexp(man, exp))
-        
-

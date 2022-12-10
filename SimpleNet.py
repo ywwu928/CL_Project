@@ -1,5 +1,11 @@
+import torch
 import torch.nn as nn 
+from torch.autograd import Variable
+import torchvision.datasets as dsets
+import torchvision.transforms as transforms
 from low_precision_utils_truncate import * 
+import easydict
+from converter import MyFloat
 
 class SimpleNet(nn.Module):
     def __init__(self, args):
@@ -37,3 +43,120 @@ class SimpleNet(nn.Module):
         # print(flt.shape) 
         out = self.lin2(flt)
         return out
+
+
+class NetRunner():
+    '''
+    Trains a network to completion.
+    Call run() to start training
+
+    cmd_args is a dict with required
+    '''
+    def __init__(self, cmd_args={}):
+        print('Arguments:', cmd_args)
+        self.args = easydict.EasyDict({
+            "batch_size": 32,
+            "epochs": cmd_args.get('epochs', 30),   # default epochs=30
+            "lr": cmd_args.get('lr', 0.1),   # default lr=0.1
+            "enable_cuda" : cmd_args.get('enable_cuda', False),
+            "L1norm" : False,
+            "simpleNet" : True,
+            "activation" : "relu", #relu, tanh, sigmoid
+            "train_curve" : True, 
+            "optimization" :"SGD",
+            "exponent" : cmd_args.get('exponent', 5),
+            "mantissa" : cmd_args.get('mantissa', 10)
+        })
+
+        # Hyper Parameters
+        self.input_size = 784
+        self.num_classes = 10
+        self.num_epochs = self.args.epochs
+        self.batch_size = self.args.batch_size
+        self.learning_rate = self.args.lr
+
+        self.mf = MyFloat(
+            exp_bits=self.args.exponent, 
+            mant_bits=self.args.mantissa,
+            device='cuda' if self.args.enable_cuda else 'cpu'
+        )
+        # attach float conversion to Tensor class
+        torch.Tensor.mf_truncate_ = self.mf.truncate_tensor
+
+        # MNIST Dataset (Images and Labels)
+        train_set = dsets.FashionMNIST(
+            root = 'FashionMNIST',
+            train = True,
+            download = True,
+            transform = transforms.Compose([
+                transforms.ToTensor()                                 
+            ])
+        )
+        test_set = dsets.FashionMNIST(
+            root = 'FashionMNIST',
+            train = False,
+            download = True,
+            transform = transforms.Compose([
+                transforms.ToTensor()                                 
+            ])
+        )
+
+        # Dataset Loader (Input Pipeline)
+        self.train_loader = torch.utils.data.DataLoader(dataset = train_set,
+                batch_size = self.batch_size,
+                shuffle = True)
+
+        self.test_loader = torch.utils.data.DataLoader(dataset = test_set,
+                batch_size = self.batch_size,
+                shuffle = False)
+        
+        self.model = SimpleNet(self.args) 
+        if self.args.enable_cuda:
+            self.model = self.model.cuda()
+
+        self.criterion = nn.CrossEntropyLoss()
+        if self.args.enable_cuda:
+            self.criterion = self.criterion.cuda() 
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr = self.learning_rate)
+
+    def run(self):
+        for epoch in range(self.num_epochs):
+            self.__train(epoch)
+            self.__test()
+
+
+
+
+    def __train(self, epoch):
+        self.model.train()
+        for batch_idx, (data, target) in enumerate(self.train_loader):
+            data, target = Variable(data), Variable(target)
+            if self.args.enable_cuda:
+                data=data.cuda() 
+                target=target.cuda() 
+            self.optimizer.zero_grad()
+            output = self.model(data)
+            loss = self.criterion(output, target)
+            loss.backward()
+            self.optimizer.step()
+            if batch_idx % 100 == 0:
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                    epoch, batch_idx * len(data), len(self.train_loader.dataset),
+                    100. * batch_idx / len(self.train_loader), loss.data.item()))
+    def __test(self):
+        self.model.eval()
+        test_loss = 0
+        correct = 0
+        for data, target in self.test_loader:
+            data, target = Variable(data, volatile=True), Variable(target)
+            if self.args.enable_cuda:
+                data=data.cuda() 
+                target=target.cuda() 
+            output = self.model(data)
+            test_loss += self.criterion(output, target).data.item() 
+            pred = output.data.max(1, keepdim=True)[1]
+            correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+        test_loss /= len(self.test_loader.dataset)
+        print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
+            test_loss, correct, len(self.test_loader.dataset),
+            100. * correct / len(self.test_loader.dataset)))
