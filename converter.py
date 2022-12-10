@@ -11,8 +11,8 @@ class MyFloat():
 
     def __init__(self, exp_bits, mant_bits, device) -> None:
         self.exp_bits = exp_bits
-        self.exp_bits_tensor = torch.Tensor([self.exp_bits+1]).to(device)
-        self.exp_bits_tensor_neg = torch.Tensor([-(self.exp_bits+1)]).to(device)
+        self.mant_bits_tensor = torch.Tensor([mant_bits+1]).to(device)
+        self.mant_bits_tensor_neg = torch.Tensor([-(mant_bits+1)]).to(device)
         self.mant_bits = mant_bits
 
         self.exp_min_raw = (-(2**(exp_bits-1))+1)+1
@@ -36,8 +36,8 @@ class MyFloat():
         
     def __truncate_tensor(self, t : torch.Tensor) -> None:
         man, exp = torch.frexp(t)
-        man.ldexp_(self.exp_bits_tensor)
+        man.ldexp_(self.mant_bits_tensor)
         man.trunc_()
-        man.ldexp_(self.exp_bits_tensor_neg)
+        man.ldexp_(self.mant_bits_tensor_neg)
         exp.clamp_(min=self.exp_min_raw, max=self.exp_max_raw)
         t.copy_(torch.ldexp(man, exp))
