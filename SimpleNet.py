@@ -116,6 +116,9 @@ class NetRunner():
         self.model = SimpleNet(self.args) 
         if self.args.enable_cuda:
             self.model = self.model.cuda()
+            if torch.cuda.device_count() > 1:
+                self.model = nn.DataParallel(self.model, device_ids=range(torch.cuda.device_count()))
+
 
         self.criterion = nn.CrossEntropyLoss()
         if self.args.enable_cuda:
@@ -160,10 +163,10 @@ class NetRunner():
 
             if(batch_idx == len(self.train_loader)-1):
                 # save loss curve
-                self.loss_curve.append(loss.data.item())
+                self.loss_curve.append(loss.item())
                 # save train accuracy curve
                 pred = output.data.max(1, keepdim=True)[1]
-                correct = pred.eq(target.data.view_as(pred)).cpu().sum()
+                correct = pred.eq(target.view_as(pred)).cpu().sum().item()
                 self.train_curve.append(correct / len(data))
 
 
@@ -179,7 +182,7 @@ class NetRunner():
             output = self.model(data)
             test_loss += self.criterion(output, target).data.item() 
             pred = output.data.max(1, keepdim=True)[1]
-            correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+            correct += pred.eq(target.view_as(pred)).cpu().sum().item()
         test_loss /= len(self.test_loader.dataset)
         print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
             test_loss, correct, len(self.test_loader.dataset),
