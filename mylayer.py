@@ -17,7 +17,7 @@ class LinearFunction(Function):
 
         ctx.save_for_backward(input, weight, bias, mf)
 
-        output = input.mm(weight.t())
+        output = input.matmul(weight.t())
         if bias is not None:
             output += bias.unsqueeze(0).expand_as(output)
 
