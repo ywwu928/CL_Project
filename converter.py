@@ -19,7 +19,8 @@ class MyFloat():
         self.exp_min = (-(2**(exp_bits-1))+1) + 1023
         self.exp_max = (2**(exp_bits-1)) + 1023
 
-    def truncate_float(self, f : torch.float32) -> torch.float32:
+    def truncate_float(self, f : float) -> float:
+        f = float(f)
         struct.pack_into('d', self.conversion_buffer, 0, f)
         uint64, = struct.unpack_from('Q', self.conversion_buffer)
         exp = max(self.exp_min, min((uint64 >> 52) & 0x7FF, self.exp_max))
@@ -28,5 +29,5 @@ class MyFloat():
         return struct.unpack_from('d', self.conversion_buffer)[0]
 
     def truncate_floats(self, fs : torch.Tensor) -> torch.Tensor:
-        return torch.tensor([self.truncate_float(f.dtype(torch.float32)) for f in fs])
+        return torch.tensor([self.truncate_float(f) for f in fs])
 
