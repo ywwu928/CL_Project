@@ -124,11 +124,14 @@ class NetRunner():
         if self.args.enable_cuda:
             self.criterion = self.criterion.cuda() 
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr = self.learning_rate)
+        # self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.num_epochs, eta_min=0)
 
     def run(self):
         for epoch in range(self.num_epochs):
             self.__train(epoch)
             self.__test()
+            # self.scheduler.step()
+
 
         filename = 'result/'
         for a in self.args:
