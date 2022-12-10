@@ -6,11 +6,10 @@ import torch.nn.functional as F
 from converter import MyFloat
 
 eps = 1e-05 
-mf = MyFloat(11, 4)
+mf = MyFloat(11, 4, 'cpu')
 
 def truncate_tensor(t):
     if t is None: return
-    # mf.truncate_tensor(t.detach())
     mf.truncate_tensor(t.detach())
     t.requires_grad_()
 

@@ -31,7 +31,6 @@ num_classes = 10
 num_epochs = args.epochs
 batch_size = args.batch_size
 learning_rate = args.lr
-mf = MyFloat(args.exponent, args.mantissa)
 
 
 # MNIST Dataset (Images and Labels)

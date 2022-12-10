@@ -3,27 +3,26 @@ import torch
 class MyFloat():
     '''
     Usage: (example, bit format for fp16)
+    'device' is 'cpu' or 'cuda'
     ------
-    mf MyFloat(5, 10)
+    mf MyFloat(5, 10, 'cpu')
     f = mf.truncate_float(f)
     '''
-    # EXPECTED_BITWIDTH = 16
 
-    def __init__(self, exp_bits, mant_bits) -> None:
-        # if ((exp_bits + mant_bits + 1) != self.EXPECTED_BITWIDTH): raise Exception('invalid width')
+    def __init__(self, exp_bits, mant_bits, device) -> None:
         self.exp_bits = exp_bits
-        self.exp_bits_tensor = torch.Tensor([self.exp_bits])
-        self.exp_bits_tensor_neg = torch.Tensor([-self.exp_bits])
+        self.exp_bits_tensor = torch.Tensor([self.exp_bits+1]).to(device)
+        self.exp_bits_tensor_neg = torch.Tensor([-(self.exp_bits+1)]).to(device)
         self.mant_bits = mant_bits
 
-        self.exp_min_raw = (-(2**(exp_bits-1))+1)
-        self.exp_max_raw = (2**(exp_bits-1))
+        self.exp_min_raw = (-(2**(exp_bits-1))+1)+1
+        self.exp_max_raw = (2**(exp_bits-1))+1
 
         self.mmask = int((12+mant_bits)*'1'+(52-mant_bits)*'0', 2)
         self.emask = int('1'+11*'0'+52*'1', 2)
-        
-        self.exp_min = self.exp_min_raw + 1023
-        self.exp_max = self.exp_max_raw + 1023
+
+        self.exp_min = self.exp_max_raw + 1023 - 1
+        self.exp_max = self.exp_max_raw + 1023 - 1
 
     def truncate_float(self, f : float) -> float:
         uint64, = struct.unpack('Q', struct.pack('d', f))
