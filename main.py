@@ -36,7 +36,7 @@ mf = MyFloat(args.exponent, args.mantissa)
 
 # MNIST Dataset (Images and Labels)
 train_set = dsets.FashionMNIST(
-    root = 'C:\\Users\\steve\\TheImportantFolder\\SeniorCourseMaterial\\EE 382V\\Lab3\\data\\FashionMNIST',
+    root = './data/',
     train = True,
     download = True,
     transform = transforms.Compose([
@@ -44,7 +44,7 @@ train_set = dsets.FashionMNIST(
     ])
 )
 test_set = dsets.FashionMNIST(
-    root = 'C:\\Users\\steve\\TheImportantFolder\\SeniorCourseMaterial\\EE 382V\\Lab3\\data\\FashionMNIST',
+    root = './data/',
     train = False,
     download = True,
     transform = transforms.Compose([
