@@ -1,5 +1,5 @@
 import torch.nn as nn 
-from low_precision_utils import * 
+from low_precision_utils_truncate import * 
 
 class SimpleNet(nn.Module):
     def __init__(self, args):

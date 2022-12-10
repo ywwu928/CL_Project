@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision.datasets as dsets
 import torchvision.transforms as transforms
-from low_precision_utils import SConv2d, SLinear
+from low_precision_utils_truncate import SConv2d, SLinear
 from torch.autograd import Variable
 from converter import MyFloat
 import easydict
@@ -14,8 +14,8 @@ import easydict
 args = easydict.EasyDict({
         "batch_size": 32,
         "epochs": 100,
-        "lr": 0.001,
-        "enable_cuda" : True,
+        "lr": 0.1,
+        "enable_cuda" : False,
         "L1norm" : False,
         "simpleNet" : True,
         "activation" : "relu", #relu, tanh, sigmoid
@@ -36,7 +36,7 @@ mf = MyFloat(args.exponent, args.mantissa)
 
 # MNIST Dataset (Images and Labels)
 train_set = dsets.FashionMNIST(
-    root = 'C:\\Users\\steve\\TheImportantFolder\\SeniorCourseMaterial\\EE 382V\\Lab3\\data\\FashionMNIST',
+    root = 'FashionMNIST',
     train = True,
     download = True,
     transform = transforms.Compose([
@@ -44,7 +44,7 @@ train_set = dsets.FashionMNIST(
     ])
 )
 test_set = dsets.FashionMNIST(
-    root = 'C:\\Users\\steve\\TheImportantFolder\\SeniorCourseMaterial\\EE 382V\\Lab3\\data\\FashionMNIST',
+    root = 'FashionMNIST',
     train = False,
     download = True,
     transform = transforms.Compose([
@@ -63,18 +63,18 @@ test_loader = torch.utils.data.DataLoader(dataset = test_set,
         shuffle = False)
   
 model = SimpleNet(args) 
-model = model.cuda() 
+# model = model.cuda() 
 
 criterion = nn.CrossEntropyLoss()
-criterion=criterion.cuda() 
+# criterion=criterion.cuda() 
 optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate)
 
 def train(epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = Variable(data), Variable(target)
-        data=data.cuda() 
-        target=target.cuda() 
+        # data=data.cuda() 
+        # target=target.cuda() 
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
@@ -90,8 +90,8 @@ def test():
     correct = 0
     for data, target in test_loader:
         data, target = Variable(data, volatile=True), Variable(target)
-        data=data.cuda() 
-        target=target.cuda() 
+        # data=data.cuda() 
+        # target=target.cuda() 
         output = model(data)
         test_loss += criterion(output, target).data.item() 
         pred = output.data.max(1, keepdim=True)[1]

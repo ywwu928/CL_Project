@@ -7,26 +7,36 @@ class MyFloat():
     mf MyFloat(5, 10)
     f = mf.truncate_float(f)
     '''
-    EXPECTED_BITWIDTH = 16
+    # EXPECTED_BITWIDTH = 16
 
     def __init__(self, exp_bits, mant_bits) -> None:
-        if ((exp_bits + mant_bits + 1) != self.EXPECTED_BITWIDTH): raise Exception('invalid width')
+        # if ((exp_bits + mant_bits + 1) != self.EXPECTED_BITWIDTH): raise Exception('invalid width')
         self.exp_bits = exp_bits
+        self.exp_bits_tensor = torch.Tensor([self.exp_bits])
+        self.exp_bits_tensor_neg = torch.Tensor([-self.exp_bits])
         self.mant_bits = mant_bits
-        self.conversion_buffer = bytearray(8)
+
+        self.exp_min_raw = (-(2**(exp_bits-1))+1)
+        self.exp_max_raw = (2**(exp_bits-1))
+
         self.mmask = int((12+mant_bits)*'1'+(52-mant_bits)*'0', 2)
         self.emask = int('1'+11*'0'+52*'1', 2)
-        self.exp_min = (-(2**(exp_bits-1))+1) + 1023
-        self.exp_max = (2**(exp_bits-1)) + 1023
+        
+        self.exp_min = self.exp_min_raw + 1023
+        self.exp_max = self.exp_max_raw + 1023
 
     def truncate_float(self, f : float) -> float:
-        f = float(f)
-        struct.pack_into('d', self.conversion_buffer, 0, f)
-        uint64, = struct.unpack_from('Q', self.conversion_buffer)
+        uint64, = struct.unpack('Q', struct.pack('d', f))
         exp = max(self.exp_min, min((uint64 >> 52) & 0x7FF, self.exp_max))
         uint64 = uint64 & self.mmask & self.emask | (exp << 52)
-        struct.pack_into('Q', self.conversion_buffer, 0, uint64)
-        return struct.unpack_from('d', self.conversion_buffer)[0]
+        return struct.unpack('d', struct.pack('Q', uint64))[0]
 
-    def truncate_floats(self, fs : torch.Tensor) -> torch.Tensor:
-        ffs = torch.Tensor([self.truncate_float(f) for f in fs.float().flatten().numpy()])
+    def truncate_tensor(self, t : torch.Tensor) -> None:
+        man, exp = torch.frexp(t)
+        man.ldexp_(self.exp_bits_tensor)
+        man.trunc_()
+        man.ldexp_(self.exp_bits_tensor_neg)
+        exp.clamp_(min=self.exp_min_raw, max=self.exp_max_raw)
+        t.copy_(torch.ldexp(man, exp))
+        
+

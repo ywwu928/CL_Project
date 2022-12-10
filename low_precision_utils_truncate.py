@@ -6,15 +6,20 @@ import torch.nn.functional as F
 from converter import MyFloat
 
 eps = 1e-05 
-mf = MyFloat(5, 10)
+mf = MyFloat(11, 4)
+
+def truncate_tensor(t):
+    if t is None: return
+    # mf.truncate_tensor(t.detach())
+    mf.truncate_tensor(t.detach())
+    t.requires_grad_()
 
 class SConvFunc(Function): 
     @staticmethod 
     def forward(ctx, input, weight, bias): 
-        input.apply_(mf.truncate_float)
-        weight.apply_(mf.truncate_float)
-        if bias is not None:
-            bias.apply_(mf.truncate_float)
+        truncate_tensor(input)
+        truncate_tensor(weight)
+        truncate_tensor(bias)
 
         stride=1
         padding=1 
@@ -27,12 +32,12 @@ class SConvFunc(Function):
         ctx.groups = groups
 
         result = F.conv2d(input = input, weight = weight, bias = bias, stride = stride, padding = padding, dilation = dilation, groups = groups)
-        result.apply_(mf.truncate_float)
+        truncate_tensor(result)
         return result
             
     @staticmethod 
     def backward(ctx, grad_output): 
-        grad_output.apply_(mf.truncate_float)
+        truncate_tensor(grad_output)
 
         input, weight, bias = ctx.saved_tensors 
         stride = ctx.stride 
@@ -48,10 +53,9 @@ class SConvFunc(Function):
         if bias is not None and ctx.needs_input_grad[2]: 
             grad_bias = grad_output.sum((0, 2, 3)).squeeze(0) 
 
-        grad_input.apply_(mf.truncate_float)
-        grad_weight.apply_(mf.truncate_float)
-        if grad_bias is not None:
-            grad_bias.apply_(mf.truncate_float)
+        truncate_tensor(grad_input)
+        truncate_tensor(grad_weight)
+        truncate_tensor(grad_bias)
         return grad_input, grad_weight, grad_bias 
 
 
@@ -74,11 +78,9 @@ class SLinearFunction(Function):
 
     @staticmethod
     def forward(ctx, input, weight, bias=None):
-        input.apply_(mf.truncate_float)
-        weight.apply_(mf.truncate_float)
-
-        if bias is not None:
-            bias.apply_(mf.truncate_float)
+        truncate_tensor(input)
+        truncate_tensor(weight)
+        truncate_tensor(bias)
 
         ctx.save_for_backward(input, weight, bias) 
 
@@ -86,13 +88,13 @@ class SLinearFunction(Function):
         if bias is not None:
             output += bias.unsqueeze(0).expand_as(output)
 
-        output.apply_(mf.truncate_float)
+        truncate_tensor(output)
         return output
 
     # This function has only a single output, so it gets only one gradient
     @staticmethod
     def backward(ctx, grad_output):
-        grad_output.apply_(mf.truncate_float)
+        truncate_tensor(grad_output)
 
         input, weight, bias = ctx.saved_tensors
         grad_input = grad_weight = grad_bias = None
@@ -106,11 +108,9 @@ class SLinearFunction(Function):
         if bias is not None and ctx.needs_input_grad[2]:
             grad_bias = grad_output.sum(0)
 
-        grad_input.apply_(mf.truncate_float)
-        grad_weight.apply_(mf.truncate_float)
-        if grad_bias is not None:
-            grad_bias.apply_(mf.truncate_float)
-
+        truncate_tensor(grad_input)
+        truncate_tensor(grad_weight)
+        truncate_tensor(grad_bias)
         return grad_input, grad_weight, grad_bias
 
 
@@ -132,9 +132,9 @@ class SBatchNormFunc(Function):
     
     @staticmethod 
     def forward(ctx, input, gamma, beta): 
-        input.apply_(mf.truncate_float)
-        gamma.apply_(mf.truncate_float)
-        beta.apply_(mf.truncate_float)
+        truncate_tensor(input)
+        truncate_tensor(gamma)
+        truncate_tensor(beta)
 
         # gamma = gamma.view(1, -1, 1, 1) # 1 * C * 1 * 1 
         mean = input.mean(dim = (0,2,3), keepdim = True) 
@@ -146,12 +146,12 @@ class SBatchNormFunc(Function):
 
         ctx.save_for_backward(input, gamma) 
         result = x_hat * gamma + beta
-        result.apply_(mf.truncate_float)
+        truncate_tensor(result)
         return result
     
     @staticmethod 
     def backward(ctx, grad_output): 
-        grad_output.apply_(mf.truncate_float)
+        truncate_tensor(grad_output)
         input, gamma = ctx.saved_tensors 
         mean = input.mean(dim = (0,2,3), keepdim = True) 
         # mean.requires_grad_(False) 
@@ -171,9 +171,9 @@ class SBatchNormFunc(Function):
         dL_dgamma = (grad_output * x_hat).sum((0, 2, 3), keepdim=True) # edit
         dL_dbeta = (grad_output).sum((0, 2, 3), keepdim=True)
 
-        dL_dxi.apply_(mf.truncate_float)
-        dL_dgamma.apply_(mf.truncate_float)
-        dL_dbeta.apply_(mf.truncate_float)
+        truncate_tensor(dL_dxi)
+        truncate_tensor(dL_dgamma)
+        truncate_tensor(dL_dbeta)
         return dL_dxi, dL_dgamma, dL_dbeta 
 
 class SBatchNorm(nn.Module): 
