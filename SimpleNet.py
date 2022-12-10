@@ -77,7 +77,8 @@ class NetRunner():
         self.loss_curve = []
         self.train_curve = []
         self.test_curve = []
-
+        print('Exponent: ', self.args.exponent)
+        print('Mantissa: ', self.args.mantissa)
         self.mf = MyFloat(
             exp_bits=self.args.exponent, 
             mant_bits=self.args.mantissa,
