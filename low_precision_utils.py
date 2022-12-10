@@ -1,13 +1,19 @@
 import torch 
 from torch.autograd import Function 
 import torch.nn as nn 
+from torch.nn import Parameter 
 import torch.nn.functional as F 
+
+eps = 1e-05 
 
 class SConvFunc(Function): 
     @staticmethod 
-    def forward(ctx, weight, bias, stride=1, padding=0, dilation=1, groups=1, module=None): 
-        ctx.save_for_backend(input, weight, bias) 
-        ctx.module = module
+    def forward(ctx, input, weight, bias): 
+        stride=1
+        padding=1 
+        dilation=1 
+        groups=1
+        ctx.save_for_backward(input, weight, bias) 
         ctx.stride = stride 
         ctx.padding = padding
         ctx.dilation = dilation
@@ -35,13 +41,18 @@ class SConvFunc(Function):
 
 
 class SConv2d(nn.Module): 
-    def __init__(self, in_channel, out_channel, h_and_w, stride, padding, dilation, groups): 
-        self.weight = torch.randn(out_channel, in_channel, h_and_w, h_and_w) 
-        self.bias = torch.randn(out_channel) 
+    def __init__(self, in_channel, out_channel, kernel_size, stride=1, padding=0, dilation=1, groups=1): 
+        super(SConv2d, self).__init__() 
+        self.weight = Parameter(torch.randn(out_channel, in_channel, kernel_size, kernel_size)) 
+        self.bias = Parameter(torch.randn(out_channel)) 
         self.conv_function = SConvFunc.apply 
+        self.stride = stride 
+        self.padding = padding 
+        self.dilation = dilation 
+        self.groups = groups 
     
-    def forward(self, input): 
-        return self.conv_function(self.weight, self.bias) 
+    def forward(self, input):
+        return self.conv_function(input, self.weight, self.bias) 
 
 # Inherit from Function
 class SLinearFunction(Function):
@@ -87,9 +98,9 @@ class SLinear(nn.Module):
         super(SLinear, self).__init__()
         self.input_features = input_features
         self.output_features = output_features
-        self.weight = torch.randn(output_features, input_features)
+        self.weight = Parameter(torch.randn(output_features, input_features))
         if bias:
-            self.bias = torch.randn(output_features)
+            self.bias = Parameter(torch.randn(output_features)) 
         else:
             self.register_parameter('bias', None)
 
@@ -99,19 +110,28 @@ class SLinear(nn.Module):
 class SBatchNormFunc(Function): 
     
     @staticmethod 
-    def forward(ctx, input, gamma, beta, eps): 
-        gamma = gamma.view(1, -1, 1, 1) # 1 * C * 1 * 1 
-        B = input.shape[0] * input.shape[2] * input.shape[3] 
-        mean = input.mean(dim = (0,2,3), keepdim = True)
-        variance = input.var(dim = (0,2,3), unbiased=False, keepdim = True)
+    def forward(ctx, input, gamma, beta): 
+        # gamma = gamma.view(1, -1, 1, 1) # 1 * C * 1 * 1 
+        mean = input.mean(dim = (0,2,3), keepdim = True) 
+        mean.requires_grad_(False) 
+        variance = input.var(dim = (0,2,3), unbiased=False, keepdim = True) 
+        variance.requires_grad_(False) 
         x_hat = (input - mean)/(torch.sqrt(variance + eps)) # N * C * S * S 
+        x_hat.requires_grad_(False) 
 
-        ctx.save_for_backward(B, mean, variance, x_hat, gamma, beta, eps) 
+        ctx.save_for_backward(input, gamma) 
         return x_hat * gamma + beta 
     
     @staticmethod 
     def backward(ctx, grad_output): 
-        B, mean, variance, x_hat, gamma, beta, eps = ctx.saved_tensors 
+        input, gamma = ctx.saved_tensors 
+        mean = input.mean(dim = (0,2,3), keepdim = True) 
+        # mean.requires_grad_(False) 
+        variance = input.var(dim = (0,2,3), unbiased=False, keepdim = True) 
+        # variance.requires_grad_(False) 
+        x_hat = (input - mean)/(torch.sqrt(variance + eps)) # N * C * S * S 
+        # x_hat.requires_grad_(False) 
+        B = input.shape[0] * input.shape[2] * input.shape[3] 
         dL_dxi_hat = grad_output * gamma
         # dL_dvar = (-0.5 * dL_dxi_hat * (input - avg) / ((var + eps) ** 1.5)).sum((0, 2, 3), keepdim=True) 
         # dL_davg = (-1.0 / torch.sqrt(var + eps) * dL_dxi_hat).sum((0, 2, 3), keepdim=True) + dL_dvar * (-2.0 * (input - avg)).sum((0, 2, 3), keepdim=True) / B
@@ -127,8 +147,9 @@ class SBatchNormFunc(Function):
 class SBatchNorm(nn.Module): 
     def __init__(self, dimension, eps = 1e-05): 
         super(SBatchNorm, self).__init__() 
-        self.gamma = torch.ones((1, dimension, 1, 1)) 
-        self.beta = torch.zeros((1, dimension, 1, 1)) 
+        self.gamma = Parameter(torch.ones((1, dimension, 1, 1), requires_grad = True)) 
+        self.beta = Parameter(torch.zeros((1, dimension, 1, 1), requires_grad = True)) 
+        self.eps = eps 
 
-    def forward(self, input, eps): 
-        return SBatchNormFunc.apply(input, self.gamma, self.beta, eps) 
+    def forward(self, input): 
+        return SBatchNormFunc.apply(input, self.gamma, self.beta) 

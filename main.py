@@ -6,6 +6,7 @@ from low_precision_utils import SConv2d, SLinear
 from torch.autograd import Variable
 from converter import MyFloat
 import easydict
+from SimpleNet import SimpleNet 
 
 # argument parser
 import easydict
@@ -35,7 +36,7 @@ mf = MyFloat(args.exponent, args.mantissa)
 
 # MNIST Dataset (Images and Labels)
 train_set = dsets.FashionMNIST(
-    root = './data/FashionMNIST',
+    root = 'C:\\Users\\steve\\TheImportantFolder\\SeniorCourseMaterial\\EE 382V\\Lab3\\data\\FashionMNIST',
     train = True,
     download = True,
     transform = transforms.Compose([
@@ -43,7 +44,7 @@ train_set = dsets.FashionMNIST(
     ])
 )
 test_set = dsets.FashionMNIST(
-    root = './data/FashionMNIST',
+    root = 'C:\\Users\\steve\\TheImportantFolder\\SeniorCourseMaterial\\EE 382V\\Lab3\\data\\FashionMNIST',
     train = False,
     download = True,
     transform = transforms.Compose([
@@ -60,36 +61,8 @@ train_loader = torch.utils.data.DataLoader(dataset = train_set,
 test_loader = torch.utils.data.DataLoader(dataset = test_set,
         batch_size = batch_size,
         shuffle = False)
-
-class MyConvNet(nn.Module):
-    def __init__(self, args):
-        super(MyConvNet, self).__init__()
-        self.conv1 = SConv2d(1, 16, kernel_size=3, stride=1, 
-                               padding=1)
-        self.bn1   = nn.BatchNorm2d(16)
-        self.act1  = nn.ReLU(inplace=True)
-        self.pool1 = nn.MaxPool2d(kernel_size=2)
-        self.conv2 = SConv2d(16, 32, kernel_size=3, stride=1, 
-                               padding=1)
-        self.bn2   = nn.BatchNorm2d(32)
-        self.act2  = nn.ReLU(inplace=True)
-        self.pool2 = nn.MaxPool2d(kernel_size=2)
-        self.lin2  = SLinear(mf, 7*7*32, 10)
-
-    def forward(self, x):
-        c1 = self.conv1(x)
-        b1  = self.bn1(c1)
-        a1  = self.act1(b1)
-        p1  = self.pool1(a1)
-        c2  = self.conv2(p1)
-        b2  = self.bn2(c2)
-        a2  = self.act2(b2)
-        p2  = self.pool2(a2)
-        flt = p2.view(p2.size(0), -1)
-        out = self.lin2(flt)
-        return out
   
-model = MyConvNet(args)
+model = SimpleNet(args) 
 model = model.cuda() 
 
 criterion = nn.CrossEntropyLoss()
@@ -110,7 +83,7 @@ def train(epoch):
         if batch_idx % 100 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.data[0]))
+                100. * batch_idx / len(train_loader), loss.data.item()))
 def test():
     model.eval()
     test_loss = 0
@@ -120,7 +93,7 @@ def test():
         data=data.cuda() 
         target=target.cuda() 
         output = model(data)
-        test_loss += criterion(output, target).data[0]
+        test_loss += criterion(output, target).data.item() 
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
     test_loss /= len(test_loader.dataset)
@@ -136,4 +109,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    print('Finished Training')
+    print('Finished Training') 

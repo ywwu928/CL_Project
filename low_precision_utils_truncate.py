@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class SConvFunc(Function): 
     @staticmethod 
-    def forward(ctx, weight, bias, stride=1, padding=0, dilation=1, groups=1, module=None): 
+    def forward(ctx, input, weight, bias, stride=1, padding=0, dilation=1, groups=1, module=None): 
         ctx.save_for_backend(input, weight, bias) 
         ctx.module = module
         ctx.stride = stride 
@@ -41,7 +41,7 @@ class SConv2d(nn.Module):
         self.conv_function = SConvFunc.apply 
     
     def forward(self, input): 
-        return self.conv_function(self.weight, self.bias) 
+        return self.conv_function(input, self.weight, self.bias) 
 
 # Inherit from Function
 class SLinearFunction(Function):
