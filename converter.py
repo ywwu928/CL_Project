@@ -29,8 +29,4 @@ class MyFloat():
         return struct.unpack_from('d', self.conversion_buffer)[0]
 
     def truncate_floats(self, fs : torch.Tensor) -> torch.Tensor:
-        ffs = fs.float()
-        ffs = ffs.view(-1)
-        for i in range(len(ffs)):
-            ffs[i] = self.truncate_float(ffs[i])
-        return fs.view(fs.shape)
+        ffs = torch.Tensor([self.truncate_float(f) for f in fs.float().flatten().numpy()])
