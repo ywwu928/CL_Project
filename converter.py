@@ -36,8 +36,15 @@ class MyFloat():
         
     def __truncate_tensor(self, t : torch.Tensor) -> None:
         man, exp = torch.frexp(t)
+
+        # exponent
+        subnorm = torch.where(exp < self.exp_min_raw, torch.sub(exp, self.exp_min_raw), 0)
+        exp.clamp_(min=self.exp_min_raw, max=self.exp_max_raw)
+
+        # mantissa
         man.ldexp_(self.mant_bits_tensor)
         man.trunc_()
-        man.ldexp_(self.mant_bits_tensor_neg)
-        exp.clamp_(min=self.exp_min_raw, max=self.exp_max_raw)
-        t.copy_(torch.ldexp(man, exp))
+        man.ldexp_(torch.add(self.mant_bits_tensor_neg, subnorm))
+
+        man.ldexp_(exp)
+        t.copy_(man)
