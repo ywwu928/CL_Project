@@ -9,8 +9,6 @@ class LinearFunction(Function):
     @staticmethod
     def forward(ctx, input, weight, bias=None):
         mf  = converter.MyFloat(5, 10)
-        input = input.float()
-        weight = weight.float()
         input = mf.truncate_floats(input)
         weight = mf.truncate_floats(weight)
         if bias is not None:
@@ -70,7 +68,7 @@ class SLinear(nn.Module):
 
 if __name__ == '__main__':
     # Test
-    input = torch.randn(1, 3)
+    input = torch.randn(2, 3)
     linear = SLinear(3, 4)
     output = linear(input)
     print(output)
