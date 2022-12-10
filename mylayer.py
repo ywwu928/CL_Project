@@ -9,9 +9,12 @@ class LinearFunction(Function):
     @staticmethod
     def forward(ctx, input, weight, bias=None):
         mf  = converter.MyFloat(5, 10)
+        input = input.float()
+        weight = weight.float()
         input = mf.truncate_floats(input)
         weight = mf.truncate_floats(weight)
         if bias is not None:
+            bias = bias.float()
             bias = mf.truncate_floats(bias)
 
         ctx.save_for_backward(input, weight, bias, mf)
@@ -20,6 +23,7 @@ class LinearFunction(Function):
         if bias is not None:
             output += bias.unsqueeze(0).expand_as(output)
 
+        output = output.float()
         output = mf.truncate_floats(output)
         return output
 
@@ -29,6 +33,7 @@ class LinearFunction(Function):
         input, weight, bias, mf = ctx.saved_tensors
         grad_input = grad_weight = grad_bias = None
         
+        grad_output = grad_output.float()
         grad_output = mf.truncate_floats(grad_output)
 
         if ctx.needs_input_grad[0]:
@@ -38,6 +43,9 @@ class LinearFunction(Function):
         if bias is not None and ctx.needs_input_grad[2]:
             grad_bias = grad_output.sum(0)
 
+        grad_input = grad_input.float()
+        grad_weight = grad_weight.float()
+        grad_bias = grad_bias.float()
         grad_input = mf.truncate_floats(grad_input)
         grad_weight = mf.truncate_floats(grad_weight)
         grad_bias = mf.truncate_floats(grad_bias)
