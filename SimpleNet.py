@@ -116,8 +116,8 @@ class NetRunner():
         self.model = SimpleNet(self.args) 
         if self.args.enable_cuda:
             self.model = self.model.cuda()
-            if torch.cuda.device_count() > 1:
-                self.model = nn.DataParallel(self.model, device_ids=range(torch.cuda.device_count()))
+            # if torch.cuda.device_count() > 1:
+            #     self.model = nn.DataParallel(self.model, device_ids=range(torch.cuda.device_count()))
 
 
         self.criterion = nn.CrossEntropyLoss()
@@ -130,7 +130,7 @@ class NetRunner():
             self.__train(epoch)
             self.__test()
 
-        filename = ''
+        filename = 'result/'
         for a in self.args:
             filename += str(a) + '_' + str(self.args[a]) + '_'
         filename = filename[:-1] + '.txt'
