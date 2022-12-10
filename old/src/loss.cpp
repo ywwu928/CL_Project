@@ -1,5 +1,5 @@
 
-#include "include/loss.hpp"
+#include "loss.hpp"
 #include <cmath>
 #include <iostream>
 
