@@ -74,6 +74,9 @@ class NetRunner():
         self.num_epochs = self.args.epochs
         self.batch_size = self.args.batch_size
         self.learning_rate = self.args.lr
+        self.loss_curve = []
+        self.train_curve = []
+        self.test_curve = []
 
         self.mf = MyFloat(
             exp_bits=self.args.exponent, 
@@ -124,6 +127,17 @@ class NetRunner():
             self.__train(epoch)
             self.__test()
 
+        filename = ''
+        for a in self.args:
+            filename += str(a) + '_' + str(self.args[a]) + '_'
+        filename = filename[:-1] + '.txt'
+
+        with open(filename, 'w') as f:
+            f.write('Arguments: ' + str(self.args) + '\n')
+            f.write('Loss Curve: ' + str(self.loss_curve) + '\n')
+            f.write('Train Curve: ' + str(self.train_curve) + '\n')
+            f.write('Test Curve: ' + str(self.test_curve) + '\n')
+            f.write('Final Test Accuracy: ' + str(self.test_curve[-1]) + '\n')
 
 
 
@@ -143,6 +157,16 @@ class NetRunner():
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx * len(data), len(self.train_loader.dataset),
                     100. * batch_idx / len(self.train_loader), loss.data.item()))
+
+            if(batch_idx == len(self.train_loader)-1):
+                # save loss curve
+                self.loss_curve.append(loss.data.item())
+                # save train accuracy curve
+                pred = output.data.max(1, keepdim=True)[1]
+                correct = pred.eq(target.data.view_as(pred)).cpu().sum()
+                self.train_curve.append(correct / len(data))
+
+
     def __test(self):
         self.model.eval()
         test_loss = 0
@@ -160,3 +184,7 @@ class NetRunner():
         print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
             test_loss, correct, len(self.test_loader.dataset),
             100. * correct / len(self.test_loader.dataset)))
+
+        # save test accuracy curve
+        self.test_curve.append(correct / len(self.test_loader.dataset))
+        
