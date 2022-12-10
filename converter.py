@@ -1,4 +1,4 @@
- import struct
+import struct
 import torch
 class MyFloat():
     '''
@@ -9,15 +9,15 @@ class MyFloat():
     '''
     EXPECTED_BITWIDTH = 16
 
-    def init(self, exp_bits, mant_bits) -> None:
+    def __init__(self, exp_bits, mant_bits) -> None:
         if ((exp_bits + mant_bits + 1) != self.EXPECTED_BITWIDTH): raise Exception('invalid width')
         self.exp_bits = exp_bits
         self.mant_bits = mant_bits
         self.conversion_buffer = bytearray(8)
-        self.mmask = int((12+mant_bits)'1'+(52-mant_bits)'0', 2)
-        self.emask = int('1'+11'0'+52'1', 2)
-        self.exp_min = (-(2(exp_bits-1))+1) + 1023
-        self.exp_max = (2(exp_bits-1)) + 1023
+        self.mmask = int((12+mant_bits)*'1'+(52-mant_bits)*'0', 2)
+        self.emask = int('1'+11*'0'+52*'1', 2)
+        self.exp_min = (-(2**(exp_bits-1))+1) + 1023
+        self.exp_max = (2**(exp_bits-1)) + 1023
 
     def truncate_float(self, f : float) -> float:
         f = float(f)
