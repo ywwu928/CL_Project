@@ -61,6 +61,7 @@ b_2 = [np.int(f) for f in list(b_2)]
 b = torch.Tensor([b_1, b_2])
 
 pred = bit2float(b)
+print(pred)
 target = torch.Tensor([123.456, 0.000654321])
 
 assert (pred.shape == b.shape[:-1]), "bit2float does not produce correct shape"
