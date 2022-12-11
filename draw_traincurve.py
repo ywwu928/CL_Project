@@ -1,20 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-files = ['batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_10_mantissa_1.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_10_mantissa_5.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_11_mantissa_6.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_12_mantissa_3.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_13_mantissa_2.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_14_mantissa_1.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_4_mantissa_3.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_5_mantissa_2.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_6_mantissa_1.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_6_mantissa_5.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_7_mantissa_4.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_8_mantissa_3.txt',
-'batch_size_32_epochs_30_lr_0.1_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_9_mantissa_2.txt']
-
+files = ['batch_size_32_epochs_30_lr_0.01_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_6_mantissa_5.txt',
+'batch_size_32_epochs_30_lr_0.01_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_7_mantissa_4.txt',
+'batch_size_32_epochs_30_lr_0.01_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_8_mantissa_3.txt',
+'batch_size_32_epochs_30_lr_0.01_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_9_mantissa_2.txt',
+'batch_size_32_epochs_30_lr_0.01_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_10_mantissa_1.txt',
+'batch_size_32_epochs_30_lr_0.01_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_2_mantissa_3.txt',
+'batch_size_32_epochs_30_lr_0.01_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_3_mantissa_2.txt',
+'batch_size_32_epochs_30_lr_0.01_enable_cuda_True_L1norm_False_simpleNet_True_activation_relu_train_curve_True_optimization_SGD_exponent_4_mantissa_1.txt']
 for filename in files:
     filename = 'result/' + filename
     loss = []
@@ -34,7 +28,7 @@ for filename in files:
 
     e = args.split('exponent')[1].split(',')[0].strip().split()[1]
     m = args.split('mantissa')[1].split(',')[0].strip().split()[1].split('}')[0]
-    ofilename = 'traincurve/' + e + '_' + m + '.png'
+    ofilename = 'traincurve/' + e + '_' + m + '_FullBN'+'.png'
 
     loss = loss.split('[')[1].split(']')[0].split(', ')
     train = train.split('[')[1].split(']')[0].split(', ')
@@ -57,7 +51,7 @@ for filename in files:
     ax2.set_ylabel('accuracy')
 
     #ax1 y limit
-    ax1.set_ylim([0, 1])
+    ax1.set_ylim([0, 3])
 
     plt.title('(1, ' + e + ', ' + m + ')')
     #lengend
